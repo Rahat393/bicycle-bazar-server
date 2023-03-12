@@ -21,20 +21,20 @@ async function run() {
   try{
     const productsCollection = client.db("bicycleBazar").collection("categories");
     const bookingsCollection = client.db("bicycleBazar").collection("bookings");
+    const usersCollection = client.db("bicycleBazar").collection("users");
 
     app.get("/categories", async(req, res) => {
       const query = {};
       const result = await productsCollection.find(query).project({category_name: 1, image: 1}).toArray();
       res.send(result)
     });
+
     app.get("/products", async(req, res) => {
       const query = {};
       const result = await productsCollection.find(query).toArray();
       res.send(result)
     });
-
-
-
+ 
     app.get("/products/:id", async(req, res) => {
       const id = req.params.id;
       const query = {_id : new ObjectId(id) }
@@ -46,8 +46,38 @@ async function run() {
       const booking = req.body;
       const result = await bookingsCollection.insertOne(booking);
       res.send(result);
-    })
+    });
+
+    app.get('/bookings', async(req, res) => {
+      let query = {};
+      if(req.query.email){
+        query ={
+          email : req.query.email
+        }
+      }
+      const result = await bookingsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post('/users', async(req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      res.send(result)
+    });
   
+  
+
+    app.get('/buyer', async(req, res) => {
+      const query = {};
+      const users = await usersCollection.find( {role: 'buyer'}).toArray();
+      res.send(users)
+    })
+    app.get('/seller', async(req, res) => {
+      const query = {};
+      const users = await usersCollection.find( {role: 'seller'}).toArray();
+      res.send(users)
+    })
+    
 
   }
   finally{
