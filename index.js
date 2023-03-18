@@ -22,6 +22,7 @@ async function run() {
     const productsCollection = client.db("bicycleBazar").collection("categories");
     const bookingsCollection = client.db("bicycleBazar").collection("bookings");
     const usersCollection = client.db("bicycleBazar").collection("users");
+    const sellerProductCollection = client.db("bicycleBazar").collection("sellerProduct");
 
     app.get("/categories", async(req, res) => {
       const query = {};
@@ -69,7 +70,7 @@ async function run() {
 
     app.get('/buyer', async(req, res) => {
       const query = {};
-      const users = await usersCollection.find( {role: 'buyer'}).toArray();
+      const users = await usersCollection.find(  query).toArray();
       res.send(users)
     })
     app.get('/seller', async(req, res) => {
@@ -77,7 +78,46 @@ async function run() {
       const users = await usersCollection.find( {role: 'seller'}).toArray();
       res.send(users)
     })
+
+    app.post('/sellerProduct', async(req, res) => {
+      const sellerProduct = req.body;
+      const result = await sellerProductCollection.insertOne(sellerProduct);
+      res.send(result)
+    })
     
+
+    app.get('/sellerProduct', async(req, res) => {
+      let query = {};
+      if(req.query.sellerEmail){
+        query ={
+          sellerEmail : req.query.sellerEmail
+        }
+      }
+      const result = await  sellerProductCollection.find(query).toArray()
+      res.send(result)
+    });
+
+    app.delete('/sellerProduct/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter  = {_id: new ObjectId(id)}
+      const result = await sellerProductCollection.deleteOne(filter);
+      res.send(result);
+    });
+
+    app.put('/users/admin/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const options = {upsert : true}
+      const updateDoc = {
+        $set: {
+          role: "admin"
+        }
+      }
+      const result = await usersCollection.updateOne(filter,  updateDoc, options);
+      res.send(result)
+    })
+
+     
 
   }
   finally{
